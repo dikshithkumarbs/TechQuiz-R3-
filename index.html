@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TECH QUIZ — Guess the Personality</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-top:#101826; --bg-bot:#0b1220;
+  --panel:#0f1626; --panel-2:#0c1422;
+  --stroke:rgba(255,255,255,.09);
+  --text:#e8f0ff; --muted:#a7b3c9;
+  --accent:#3b82f6; --accent-2:#2563eb;
+  --alt:rgba(255,255,255,.08); --alt-stroke:rgba(255,255,255,.12);
+  --danger:#ef4444;
+}
+html[data-theme="light"]{
+  --bg-top:#ffffff; --bg-bot:#ffffff;
+  --panel:#f5f6f8; --panel-2:#f0f1f3;
+  --stroke:rgba(0,0,0,.08);
+  --text:#131313; --muted:#4b4b4b;
+  --accent:#2563eb; --accent-2:#1d4ed8;
+  --alt:rgba(0,0,0,.06); --alt-stroke:rgba(0,0,0,.15);
+}
+html[data-theme="neon"]{
+  --bg-top:#021820; --bg-bot:#001016;
+  --panel:#001a26; --panel-2:#00131e;
+  --stroke:rgba(0,255,255,.25);
+  --text:#d5ffff; --muted:#87f7ff;
+  --accent:#14d0ff; --accent-2:#09bce6;
+  --alt:rgba(0,255,255,.1); --alt-stroke:rgba(0,255,255,.4);
+}
+
+*{box-sizing:border-box}
+html,body{
+  height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)
+}
+body{
+  background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
+  display:flex;align-items:center;justify-content:center;padding:8px;
+}
+
+.app{
+  width:100%;max-width:1200px;height:100%;
+  display:grid;grid-template-rows:auto 1fr auto auto;
+}
+
+header{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid var(--stroke);
+  background:var(--panel);
+}
+.title{font-weight:800;font-size:clamp(16px,4vw,22px)}
+.spacer{flex:1}
+.pill{
+  font-size:12px;padding:6px 10px;border-radius:999px;
+  border:1px solid var(--stroke);background:var(--panel-2);color:var(--muted)
+}
+
+.stage{display:grid;grid-template-rows:1fr auto;gap:10px;padding:10px;min-height:0;}
+.frame{position:relative;border-radius:14px;overflow:hidden;background:var(--panel-2);border:1px solid var(--stroke);}
+.frame>.inner{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;}
+.frame img{width:100%;height:100%;object-fit:contain;display:block;}
+.placeholder{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-weight:600}
+.answer{display:none;border:1px solid var(--stroke);border-radius:10px;background:var(--panel-2);padding:12px;line-height:1.35;font-size:18px}
+
+.toolbar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--stroke);background:var(--panel);}
+.toolbar .spacer{flex:1}
+button{appearance:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;border:1px solid transparent;}
+.btn{background:var(--accent);color:#fff;border-color:var(--alt-stroke)}
+.btn.alt{background:var(--alt);color:var(--text);border-color:var(--alt-stroke)}
+.btn.warn{background:var(--danger);color:#fff;border-color:transparent}
+
+footer{display:flex;align-items:center;gap:12px;padding:8px 12px;border-top:1px solid var(--stroke);color:var(--muted)}
+.progress{flex:1;height:10px;border-radius:999px;background:var(--alt);overflow:hidden}
+.bar{height:100%;width:0%;background:var(--text);transition:width .25s ease}
+.meta{font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="title">TECH QUIZ — Guess the Personality</div>
+  <div class="spacer"></div>
+  <div class="pill" id="roundLabel">Round 3</div>
+  <div class="pill" id="counterTop">Intro</div>
+  <button class="btn alt" id="themeBtn" style="padding:6px 10px;font-size:12px;">Theme</button>
+</header>
+
+<main class="stage">
+  <figure class="frame" id="frame">
+    <div class="inner" id="introScreen">
+      <h1 style="font-size:2.5em;margin:0;">THE NATIONAL COLLEGE<br>JAYANAGAR</h1>
+      <h2 style="margin-top:10px;color:var(--muted)">ROUND 3</h2>
+    </div>
+    <div class="inner" style="display:none;" id="imgContainer">
+      <img id="photo" src="" alt="">
+    </div>
+    <div class="placeholder" id="ph">Loading…</div>
+  </figure>
+  <div class="answer" id="answer"></div>
+</main>
+
+<div class="toolbar">
+  <button class="btn alt" id="prevBtn">Previous</button>
+  <button class="btn" id="nextBtn">Next</button>
+  <button class="btn alt" id="viewBtn">View</button>
+  <div class="spacer"></div>
+  <button class="btn alt" id="shuffleBtn">Shuffle</button>
+  <button class="btn alt" id="fsBtn">Fullscreen</button>
+  <button class="btn warn" id="resetBtn">Restart</button>
+</div>
+
+<footer>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="meta" id="counter">Intro</div>
+</footer>
+
+</div>
+
+<!-- overlay -->
+<div class="overlay" id="overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);align-items:center;justify-content:center;z-index:99">
+  <button id="overlayClose" style="position:fixed;top:16px;right:16px;padding:8px 10px;border-radius:10px;background:#000;color:#fff;border:1px solid #fff">Close</button>
+  <img id="overlayImg" style="max-width:94vw;max-height:94vh;object-fit:contain;border-radius:10px">
+</div>
+
+<script>
+const people = [
+  {name:"Bill Gates",info:"Co-founder of Microsoft; philanthropist.",img:"img/gate.png"},
+  {name:"Mark Zuckerberg",info:"Founder & CEO of Meta (Facebook).",img:"img/mark.png"},
+  {name:"Sundar Pichai",info:"CEO of Google & Alphabet.",img:"img/sp.png"},
+  {name:"Elon Musk",info:"CEO of Tesla, SpaceX, and X (Twitter).",img:"img/em.png"},
+  {name:"Steve Jobs",info:"Co-founder of Apple; key to iPhone era.",img:"img/sj.png"},
+  {name:"Satya Nadella",info:"CEO of Microsoft.",img:"img/sn.png"},
+  {name:"Jeff Bezos",info:"Founder of Amazon & Blue Origin.",img:"img/jb.png"},
+  {name:"Tim Berners-Lee",info:"Inventor of the World Wide Web.",img:"img/tim.png"},
+  {name:"Guido van Rossum",info:"Creator of Python language.",img:"img/gvr.png"},
+  {name:"Dennis Ritchie",info:"Created C language; co-created Unix.",img:"img/dr.png"},
+  {name:"Ratan Tata",info:"Indian industrialist & philanthropist.",img:"img/rt.png"},
+  {name:"Mukesh Ambani",info:"Chairman of Reliance; founder of Jio.",img:"img/ma.png"},
+  {name:"N. R. Narayana Murthy",info:"Co-founder of Infosys.",img:"img/nm.png"},
+  {name:"Azim Premji",info:"Former Wipro chairman; philanthropist.",img:"img/ap.png"},
+  {name:"Arvind Krishna",info:"Chairman & CEO of IBM.",img:"img/ak.png"},
+  
+];
+
+let order=[...people.keys()];
+let index=0, showing=false, loading=false, started=false;
+
+const imgEl=document.getElementById('photo');
+const phEl=document.getElementById('ph');
+const ans=document.getElementById('answer');
+const bar=document.getElementById('bar');
+const counter=document.getElementById('counter');
+const counterTop=document.getElementById('counterTop');
+const introScreen=document.getElementById('introScreen');
+const imgContainer=document.getElementById('imgContainer');
+const overlay=document.getElementById('overlay');
+const overlayImg=document.getElementById('overlayImg');
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function preload(s){return new Promise(r=>{const i=new Image();i.onload=()=>r(true);i.onerror=()=>r(false);i.src=s})}
+function upd(){const t=order.length,c=index+1;bar.style.width=(c/t*100)+"%";counter.textContent=c+" / "+t;counterTop.textContent=c+" / "+t;}
+
+async function render(){
+  const p=people[order[index]];
+  loading=true; showing=false; ans.style.display="none"; ans.innerHTML="";
+  phEl.style.display='grid'; imgEl.removeAttribute('src');
+  const ok=await preload(p.img);
+  imgEl.src=ok?p.img:"";
+  loading=false; phEl.style.display='none'; upd();
+}
+
+function next(){
+  if(!started){
+    started=true; introScreen.style.display="none"; imgContainer.style.display="flex"; render(); return;
+  }
+  if(loading)return;
+  if(!showing){showing=true;const p=people[order[index]];ans.style.display="block";ans.innerHTML="<b>"+p.name+"</b><br>"+p.info;return;}
+  showing=false; index++; if(index>=order.length){index=0;} render();
+}
+function prev(){if(!started)return;if(index>0)index--;showing=false;render();}
+function restart(){index=0;showing=false;if(started){render();}}
+function openView(){overlayImg.src=imgEl.src;overlay.style.display='flex';}
+function closeView(){overlay.style.display='none';overlayImg.src='';}
+function fs(){!document.fullscreenElement?document.documentElement.requestFullscreen():document.exitFullscreen();}
+
+/* Theme cycle */
+const themes=["dark","light","neon"];
+let ti=themes.indexOf(localStorage.getItem("theme"));
+if(ti<0)ti=0;
+document.documentElement.dataset.theme=themes[ti];
+function cycleTheme(){ti=(ti+1)%themes.length;document.documentElement.dataset.theme=themes[ti];localStorage.setItem("theme",themes[ti]);}
+
+/* Hook buttons */
+document.getElementById("themeBtn").onclick=cycleTheme;
+document.getElementById("shuffleBtn").onclick=()=>{shuffle(order);index=0;showing=false;if(started){render();}};
+document.getElementById("prevBtn").onclick=prev;
+document.getElementById("nextBtn").onclick=next;
+document.getElementById("viewBtn").onclick=openView;
+document.getElementById("resetBtn").onclick=restart;
+document.getElementById("fsBtn").onclick=fs;
+document.getElementById("overlayClose").onclick=closeView;
+overlay.onclick=e=>{if(e.target===overlay)closeView();}
+window.onkeydown=e=>{
+  if(e.key==" "||e.key=="ArrowRight")next();
+  if(e.key=="ArrowLeft")prev();
+}
+
+/* Start with intro only */
+phEl.style.display='none';
+</script>
+</body>
+</html>
